@@ -1,7 +1,9 @@
 <h3>Login</h3>
+{{#when_on featSocialConnect}}
 <button id="connect-facebook" class="btn btn-connect-facebook btn-block">Facebook</button>
 <button id="connect-twitter" class="btn btn-connect-twitter btn-block">Twitter</button>
 <hr>
+{{/when_on}}
 <form id="form-session-login" method="post" class="">
   <fieldset>    
     <div class="control-group">

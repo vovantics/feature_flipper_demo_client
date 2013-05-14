@@ -148,6 +148,10 @@ function(app, $, _, Backbone, debug) {
 
         serialize: function() {
             debug.info('Entering Views.Login.serialize()...');
+
+            return {
+                featSocialConnect: app.feature(2)
+            };
         }
     });
 

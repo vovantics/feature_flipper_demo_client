@@ -60,7 +60,7 @@ function ($, _, Backbone, Handlebars) {
     // Configure FeatureManager.
     Backbone.Feature = Backbone.Feature.extend({
         //url: 'session',
-        urlRoot: 'http://localhost/api/features/'
+        urlRoot: 'http://127.0.0.1:8000/api/feature/'
     });
 
     // Mix Backbone.Events, modules, and layout management into the app object.

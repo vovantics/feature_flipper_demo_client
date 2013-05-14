@@ -18,8 +18,9 @@ function(app, $, _, Backbone, debug) {
     'use strict';
 
     // Edit these and turn them on or off
-    //app.feature('1').turnOn();
-    //app.feature('1', 333).fetch();
+    //app.feature(1).turnOn();
+    app.feature(2).turnOn();
+    app.feature(1, 1).fetch();
 
     var User = app.module();
 
@@ -154,11 +155,11 @@ function(app, $, _, Backbone, debug) {
             // Cancel default action of the keypress event.
             e.preventDefault();
 
-            app.feature('1').whenOn( function() {
+            app.feature(1).whenOn(function() {
                 app.router.navigate('accounts/register/payup/', {trigger: true, replace: true});
             }, this);
 
-            app.feature('1').whenOff( function() {
+            app.feature(1).whenOff(function() {
                 app.router.navigate('discussions/', {trigger: true, replace: true});
             }, this);
         },

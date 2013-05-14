@@ -15,7 +15,7 @@
         // Add user id to Model url.
         url: function() {
             var origUrl = Backbone.Model.prototype.url.call(this);
-            return origUrl + '/users/' + this.get('userId') + '/';
+            return origUrl + '/user/' + this.get('userId') + '/';
         },
 
         isOn: function () {
@@ -58,3 +58,13 @@
     Backbone.Feature = Feature;
 
 }).call(this);
+
+/**
+ * If feature is on
+ * when_on this compare=that
+ */
+Handlebars.registerHelper('when_on', function(context, options) {
+    if (context.isOn() == true)
+        return options.fn(this);
+    return options.inverse(this);
+});

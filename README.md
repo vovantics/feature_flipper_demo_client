@@ -4,6 +4,7 @@
 
 * Create user module
 
+* Implement discussion list view with handlebars loop helper
 * Implement JS flipper for free user registration and then facebook connect 
 * Create discussion module
 * Implement question and answer flows for Profs and Students
@@ -12,7 +13,6 @@
 * Implement notification module
 * Implement notification upon upvote
 * Document features: https://www.djangopackages.com/grids/g/feature-flip/, http://www.iheavy.com/2011/08/26/5-things-are-toxic-to-scalability/
-
 
 ## Problem:
 

@@ -12,14 +12,21 @@
 
     var Feature = Backbone.Model.extend({
 
+        // TODO: This should be extendable
         // Add user id to Model url.
         url: function() {
             var origUrl = Backbone.Model.prototype.url.call(this);
             return origUrl + '/user/' + this.get('userId') + '/';
         },
 
-        isOn: function () {
+        // TODO: This should be extendable
+        parse: function(response) {
+            return {
+                active: response.active
+            };
+        },
 
+        isOn: function () {
             //All is a special case feature. If it is on then always return true for the feature,
             if (this.collection.get('all') && this.collection.get('all').get('active')) {
                 var allExcludeList = this.collection.get('all').excludeList;

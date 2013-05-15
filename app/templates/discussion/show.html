@@ -1,0 +1,13 @@
+<h2>Question: {{question}}</h2>
+
+<form method="post">
+  <input id="new-answer" type="text" placeholder="Begin typing..." style="width:100%;"></input>
+</form>
+
+<hr>
+
+<h4>{{numAnswers}} answers</h4>
+
+{{#list answers}}
+  <span>{{username}}: {{text}}</span>
+{{/list}}

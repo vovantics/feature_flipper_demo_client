@@ -37,7 +37,7 @@ function(app, $, _, Backbone, debug) {
             debug.info('Entering Session.Router.login(' + next + ')...');
 
             // Use layout and views, and then render.
-            app.useLayout('splash').setViews({
+            app.useLayout('auth').setViews({
                 '#container-content': new Session.Views.Login({
                     model: this.session,
                     next: next !== undefined ? decodeURIComponent(next) : null
@@ -52,7 +52,7 @@ function(app, $, _, Backbone, debug) {
 
     Session.Model = Backbone.Model.extend({
 
-        url: 'http://' + app.serverHost + '/session/',
+        urlRoot: 'http://' + app.serverHost + '/session/',
 
         // Default attributes for the session.
         defaults: {

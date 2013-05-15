@@ -18,9 +18,20 @@ function(app, $, _, Backbone, debug) {
     'use strict';
 
     // Edit these and turn them on or off
-    //app.feature(1).turnOn();
-    app.feature(2).turnOn();
-    app.feature(1, 1).fetch();
+    //app.feature(1).turnOff();
+    //app.feature(2).turnOn();
+    console.log("Fetching feature 1...");
+    //app.feature(1, 1).fetch();
+    app.feature(1, 1).fetch({
+        async: false,
+        success: function (model, response, options) {
+            debug.debug("Fetch success!");    
+        },
+        error: function(model, response, options) {
+            debug.debug("Fetch ERROR!");    
+            console.log(response);
+        }
+    });
 
     var User = app.module();
 
@@ -42,7 +53,7 @@ function(app, $, _, Backbone, debug) {
             debug.info('Entering User.Router.register()...');
 
             // Set layout and views, then render.
-            app.useLayout('splash').setViews({
+            app.useLayout('auth').setViews({
                 '#container-content': new User.Views.Register({
                     //model: this.user
                 })
@@ -53,7 +64,7 @@ function(app, $, _, Backbone, debug) {
             debug.info('Entering User.Router.payup()...');
 
             // Set layout and views, then render.
-            app.useLayout('splash').setViews({
+            app.useLayout('auth').setViews({
                 '#container-content': new User.Views.PayUp({
                     //model: this.user
                 })

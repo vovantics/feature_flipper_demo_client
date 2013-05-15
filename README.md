@@ -5,8 +5,9 @@
 * Create user module
 
 * Implement discussion list view with handlebars loop helper
-* Implement JS flipper for free user registration and then facebook connect 
 * Create discussion module
+
+* Implement JS flipper for free user registration and then facebook connect 
 * Implement question and answer flows for Profs and Students
 * Create notification module
 * Implement answer upvote

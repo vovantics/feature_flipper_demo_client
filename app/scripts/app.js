@@ -16,7 +16,8 @@ function ($, _, Backbone, Handlebars) {
     var app = {
         // The root path to run the application through.
         root: '/',
-        name: '???'
+        name: '???',
+        serverHost: '127.0.0.1:8000'
     };
 
     // Localize or create a new JavaScript Template object.
@@ -59,7 +60,6 @@ function ($, _, Backbone, Handlebars) {
 
     // Configure FeatureManager.
     Backbone.Feature = Backbone.Feature.extend({
-        //url: 'session',
         urlRoot: 'http://127.0.0.1:8000/api/feature/'
     });
 
@@ -103,7 +103,6 @@ function ($, _, Backbone, Handlebars) {
         },
 
         feature: function(featureId, userId) {
-            console.info('Entering feature()... feature_id=[' + featureId + '] user_id=[' + userId + ']');
 
             if (!this.features) {
                 this.features = new Backbone.FeatureManager();
@@ -111,11 +110,11 @@ function ($, _, Backbone, Handlebars) {
 
             var model = this.features.get(featureId);
             if (model) {
-                console.info('Feature id=[' + featureId + '] exists!');
+                console.info('Feature id=[' + featureId + '] exists! active=[' + model.get('active') + '].');
                 return model;
             }
             else {
-                console.info('Feature id=[' + featureId + '] DNE!');
+                console.info('Feature id=[' + featureId + '] DNE! Creating feature with feature_id=[' + featureId + '] active=[false] user_id=[' + userId + ']');
                 model = new Backbone.Feature({
                     id: featureId,
                     active: false,

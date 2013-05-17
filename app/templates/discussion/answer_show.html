@@ -1,0 +1,12 @@
+<div class="media">
+  <a class="pull-left" href="#">
+    <img class="media-object img-polaroid" src="images/64x64.png">
+  </a>
+  <div class="media-body">
+    <p class="media-heading"><strong>{{username}}</strong> • {{dateFormat timestamp}}</p>
+    <p>{{text}}</p>
+    {{#when_on upvoteAnswer}}
+    <p><small style="color: #555;">{{numVotes}} people agree with this answer</small> • <a class="upvote" style="cursor:pointer;"><i class="icon-thumbs-up"></i> <small>I agree!</small></a></p>
+    {{/when_on}}
+  </div>
+</div>

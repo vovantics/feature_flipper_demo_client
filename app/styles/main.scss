@@ -42,7 +42,7 @@ input[type="color"],
   padding-top: 60px;
 }
 
-.l-onecolumn {
+.l-onecolumn, .l-discussion {
   padding-top: 80px;
 }
 
@@ -154,4 +154,8 @@ input[type="color"],
   color: #fff !important;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.13);
   -webkit-font-smoothing: antialiased;
+}
+
+ul.answer-list li {
+  margin-bottom: 10px;
 }

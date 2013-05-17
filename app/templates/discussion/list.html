@@ -1,4 +1,13 @@
 <h1>Discussions - List</h1>
+<hr>
 {{#list questions}}
-  <a href="discussions/{{id}}/">{{username}}: {{text}}</a>
+  <div class="media">
+    <a class="pull-left" href="#">
+      <img class="media-object img-polaroid" src="images/64x64.png">
+    </a>
+    <div class="media-body">
+      <h4 class="media-heading">{{username}}</h4>
+      <a href="discussions/{{id}}/">{{text}}</a>
+    </div>
+  </div>
 {{/list}}

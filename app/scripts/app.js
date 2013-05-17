@@ -16,7 +16,7 @@ function ($, _, Backbone, Handlebars) {
     var app = {
         // The root path to run the application through.
         root: '/',
-        name: '???',
+        name: 'Feature Flipper Demo',
         serverHost: '127.0.0.1:8000'
     };
 
@@ -103,6 +103,7 @@ function ($, _, Backbone, Handlebars) {
         },
 
         feature: function(featureId, userId) {
+            //console.log('Entering feature() feature_id=[' + featureId + '] user_id=[' + userId + ']...');
 
             if (!this.features) {
                 this.features = new Backbone.FeatureManager();
@@ -110,11 +111,11 @@ function ($, _, Backbone, Handlebars) {
 
             var model = this.features.get(featureId);
             if (model) {
-                console.info('Feature id=[' + featureId + '] exists! active=[' + model.get('active') + '].');
+                //console.info('Feature id=[' + featureId + '] exists! active=[' + model.get('active') + '].');
                 return model;
             }
             else {
-                console.info('Feature id=[' + featureId + '] DNE! Creating feature with feature_id=[' + featureId + '] active=[false] user_id=[' + userId + ']');
+                //console.info('Feature id=[' + featureId + '] DNE! Creating feature with feature_id=[' + featureId + '] active=[false] user_id=[' + userId + ']');
                 model = new Backbone.Feature({
                     id: featureId,
                     active: false,

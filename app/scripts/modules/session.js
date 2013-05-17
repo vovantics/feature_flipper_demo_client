@@ -52,7 +52,7 @@ function(app, $, _, Backbone, debug) {
 
     Session.Model = Backbone.Model.extend({
 
-        urlRoot: 'http://' + app.serverHost + '/session/',
+        urlRoot: 'http://' + app.serverHost + '/api/session/',
 
         // Default attributes for the session.
         defaults: {
@@ -90,67 +90,42 @@ function(app, $, _, Backbone, debug) {
             this.next = options.next;
         },
 
-        authoriseAndSyncUser: function(loggedInUser) {
-            debug.info('Entering Session.Views.Login.authoriseAndSyncUser()...');
-
-            //var users = new UserDetails();
-            //users.reset();
-            //app.appUser = loggedInUser;
-            //app.appUser.save();
-            //users.create(loggedInUser);
-            //app.navigate("#/settings");
-            app.router.navigate('discussions/', {trigger: true, replace: true});
-        },
-
-        connectOnSubmit: function(e) {
-            debug.info('Entering Session.Views.Login.connectOnSubmit()...');
+        createOnSubmit: function(e) {
+            debug.info('Entering Views.Login.createOnSubmit()...');
 
             // Cancel default action of the keypress event.
             e.preventDefault();
 
-            var self = this;
-            // Configurate the Facebook OAuth settings.
-            _.extend(Backbone.OAuth.configs.Facebook, {
-                client_id: '130192300511743',
-                redirect_url: window.location.protocol + '//' + window.location.host + '/#discussions/',
-                //redirect_url: window.location.protocoll + '//' + window.location.host + '/auth_redirect.html',
+            var data = {
+                email: $('#email').val(),
+                password: $('#password').val()
+            };
 
-                // Called after successful authentication.
-                onSuccess: function(params) {
-                    debug.info("FB login success.");
-                    console.log('FB ' + params.access_token);
-
-                    // Get the user's data from Facebook's graph api.
-                    $.ajax('https://graph.facebook.com/me?access_token=' + params.access_token, {
-                        success: function(data) {
-                            alert('Howdy, ' + data.name);
-                            self.authoriseAndSyncUser({
-                                thirdPartyId:data.id,
-                                name:data.name,
-                                email:data.email,
-                                thumbnailPath:data.picture,
-                                authenticated:true
-                            });
-                        }
-                    });
+            debug.debug('Session before save cid=[' + this.model.cid + '] model=[' + JSON.stringify(this.model) + ']');
+            var that = this;
+            this.model.save(data, {
+                success: function(model, response, options){
+                    if (response.auth === true) {
+                        debug.debug('Authenticated!');
+                        app.router.navigate('discussions/', {trigger: true});
+                    }
+                    else {
+                        debug.debug('NOT Authenticated!');
+                    }
                 },
-
-                // Called after successful authentication.
-                onError: function(params) {
-                    debug.error("An error has occurred during FB login.");
-                }
+                error: function(model, response, options) {
+                    debug.debug('An error has occurred while signing in.');
+                },
+                emulateJSON: false
             });
 
-            // Create a new OAuth object and call the auth() method to start the process.
-            var FB = new Backbone.OAuth(Backbone.OAuth.configs.Facebook);
-            FB.auth();
         },
 
         serialize: function() {
             debug.info('Entering Views.Login.serialize()...');
 
             return {
-                featSocialConnect: app.feature(2)
+                featSocialConnect: app.feature(4)   // TODO
             };
         }
     });

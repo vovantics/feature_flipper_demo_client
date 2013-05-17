@@ -12,6 +12,11 @@
 
     var Feature = Backbone.Model.extend({
 
+        defaults: {
+            active: false,
+            userId: null
+        },
+
         // TODO: This should be extendable
         // Add user id to Model url.
         url: function() {
@@ -21,6 +26,7 @@
 
         // TODO: This should be extendable
         parse: function(response) {
+            console.log('Entering parse()... this feature active=[' + response.active + ']');
             return {
                 active: response.active
             };
@@ -28,11 +34,11 @@
 
         isOn: function () {
             //All is a special case feature. If it is on then always return true for the feature,
-            if (this.collection.get('all') && this.collection.get('all').get('active')) {
+            /*if (this.collection.get('all') && this.collection.get('all').get('active')) {
                 var allExcludeList = this.collection.get('all').excludeList;
                 if (allExcludeList && _.indexOf(allExcludeList, this.id) > -1) { return this.get('active'); }
                 return true;
-            }
+            }*/
 
             return this.get('active');
         },

@@ -21,11 +21,13 @@ function(app, Backbone, debug) {
         initialize: function(options) {
             debug.info('Entering Meta.Views.Nav.initialize()...');
 
-            // Re-render the nav when the session is destroyed.
-            /*this.model.on("destroy", function() {
-                debug.debug("Session destroyed cid=[" + this.model.cid + "] model=[" + JSON.stringify(this.model) + "]");
+            this.notifications = options.notifications;
+
+            // Collection.fetch() will call reset() on success, which
+            // in turn will trigger a "reset" event
+            this.notifications.on('reset', function() {
                 this.render();
-            }, this);*/
+            }, this);
         },
 
         // Provides the view with this collection's data.
@@ -33,9 +35,12 @@ function(app, Backbone, debug) {
             debug.info('Entering Meta.Views.Nav.serialize()...');
 
             return {
-                appname: app.name
-                //is_authenticated: this.model.get('auth'),
-                //username: this.model.get('username')
+                notifyOnVote: app.feature(3, this.model.id),
+                appname: app.name,
+                is_authenticated: this.model.get('auth'),
+                username: this.model.get('username'),
+                numNotifications: this.notifications.length,
+                notifications: this.notifications.toJSON()
             };
         }
     });

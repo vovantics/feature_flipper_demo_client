@@ -2,6 +2,7 @@ require.config({
     paths: {
         backbone: '../components/backbone/backbone',
         'backbone.subroute': '../components/backbone.subroute/backbone.subroute',
+        'backbone.routefilter': '../components/backbone.routefilter/dist/backbone.routefilter',
         jquery: '../components/jquery/jquery',
         'backbone.layoutmanager': '../components/layoutmanager/backbone.layoutmanager',
         underscore: '../components/underscore/underscore',
@@ -41,6 +42,13 @@ require.config({
         'backbone.subroute': {
             deps: ['backbone', 'underscore'],
             exports: 'Backbone.SubRoute'
+        },
+        'backbone.routefilter': {
+            deps: [
+                'backbone',
+                'underscore'
+            ],
+            exports: 'Backbone.Routefilter'
         },
         'handlebars': {
             exports: 'Handlebars'

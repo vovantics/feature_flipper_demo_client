@@ -1,19 +1,31 @@
 # feature flipper demo - client
 
+## Examples
+
+### Example 1
+
+We want to A/B test the success rate of sign up conversions with and w/o requiring payment.
+
+First, decorate the feature with a flag: "User receives notifications upon upvote of an answer."
+
+### Example 2
+
+Suppose that discussion answer votes are stored in a memcached datastore. Also, our memcached instance is full and is now booting out data. We want to disable the voting feature, fix the problem, then enable it again.
+
+First, decorate the feature with flag: "User can upvote an answer."
+
+### Example 3
+
+Suppose someone came up with the idea of pushing notifications to users when their answers are upvoted. Notifications are an epic task. 
+
+Decorate all feature code with flag: "User receives notifications upon upvote of an answer.", iteratively code and ship it everyday, then enable the flag once the feature is complete.
+
 ## TODO
 
-* Create user module
-
-* Implement discussion list view with handlebars loop helper
-* Create discussion module
-
-* Implement JS flipper for free user registration and then facebook connect 
-* Implement question and answer flows for Profs and Students
-* Create notification module
-* Implement answer upvote
-* Implement notification module
-* Implement notification upon upvote
 * Document features: https://www.djangopackages.com/grids/g/feature-flip/, http://www.iheavy.com/2011/08/26/5-things-are-toxic-to-scalability/
+* Document workflow: https://github.com/bigodines/feature-flipper-js
+* Document hard & fast rules on model layer changes.
+* Document the use of flags and switches in backbone.featureflipper.js: http://waffle.readthedocs.org/en/latest/types.html#flags
 
 ## Problem:
 
@@ -38,8 +50,10 @@ Write a backbone.js feature flipper.
 ## Use Cases:
 
 * Keep calm and flip the feature off: disabling/reverting features when you encounter problems (i.e. FB connect)
-* Dogfooding: Decouple pushes from feature activation. Put a "feature flip" switch on your code early. Deploy it to production as often as possible. Enable this feature only for early adopters (i.e. employees, ardent supporters). When it's ready, flip the switch for your new feature to come online!
 * Contingency levers: During unexpected load traffic times, throttling back the behavior of certain features will allow us to lighten the demand on our infrastructure.
+
+* Dogfooding: Decouple pushes from feature activation. Put a "feature flip" switch on your code early. Deploy it to production as often as possible. Enable this feature only for early adopters (i.e. employees, ardent supporters). When it's ready, flip the switch for your new feature to come online!
+* A/B testing
 
 ## Resources
 
@@ -56,3 +70,13 @@ Write a backbone.js feature flipper.
 * C: Prof can post a "question" and Student can post an "answer".
 * D: Student can "upvote" an "answer".
 * E: Student receives "notification" when another Student "upvotes" his/her "answer".
+
+## Workflow
+
+* Develop a feature;
+* Add it to feature flipper;
+* Enabled it to yourself (it should be ok to use production env as all features are disabled by default);
+* Test, test, test;
+* Enable to all users;
+* After feature is stable, remove the old version of the feature if it exists.
+* Clean up your code and get back to 1)

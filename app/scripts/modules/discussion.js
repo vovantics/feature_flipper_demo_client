@@ -3,17 +3,21 @@ define([
     'app',
 
     // Libraries
+    'jquery',
+    'underscore',
     'backbone',
     'debug',
 
     // Modules
     'modules/meta',
+    'modules/user',
+    'modules/vote',
     'modules/constants',
     'modules/helpers',
 
     'backbone.subroute'
 ],
-function(app, Backbone, debug, Meta, Constants) {
+function(app, $, _, Backbone, debug, Meta, User, Vote, Constants) {
     'use strict';
     var Discussion = app.module();
 
@@ -27,19 +31,15 @@ function(app, Backbone, debug, Meta, Constants) {
             ':id': 'show',          // #discussions/1/
         },
 
-        initialize: function() {
+        initialize: function(options) {
             debug.info('Entering Discussion.Router.initialize()...');
 
-            // Create a new discussion.        
-            this.answers = new Discussion.AnswerCollection([], { namespace: 'q1_answers' });
-            var answer1 = new Discussion.AnswerModel({text: 'Corn on the cob.', username: 'Stevo'});
-            var answer2 = new Discussion.AnswerModel({text: 'Beercan chicken.', username: 'Davin'});
-            this.answers.add(answer1);
-            this.answers.add(answer2);
-
-            this.questions = new Discussion.QuestionCollection([], { namespace: 'q1_questions' });
+            this.session = options.session;
+            this.user = options.user;
+            this.notifications = options.notifications;
 
             // Fetch any preexisting questions from the server.
+            this.questions = new Discussion.QuestionCollection([]);
             this.questions.fetch({
                 async: false,
                 success: function (model, response, options) {  // TODO: Fix this
@@ -50,35 +50,43 @@ function(app, Backbone, debug, Meta, Constants) {
                     console.log(response);
                 }
             });
-
-            /*var question1 = new Discussion.QuestionModel({id: 1, text: 'What is your favourite thing to BBQ?', username: 'Professor'});
-            question1.set({'answers': answers});
-            var question2 = new Discussion.QuestionModel({id: 2, text: 'Who do you think will win the 2013 World Cup?', username: 'Professor'});
-            var question3 = new Discussion.QuestionModel({id: 3, text: 'Why is there not enough breakfast sandwiches served in the morning?', username: 'Professor'});
-            var question4 = new Discussion.QuestionModel({id: 4, text: 'List all the cities where Top Hat employees reside.', username: 'Professor'});
-            this.questions.add(question1);
-            this.questions.add(question2);
-            this.questions.add(question3);
-            this.questions.add(question4);*/
         },
 
         show: function(id) {
             debug.info('Entering Discussion.Router.show()...');
 
+            // Fetch answers for question.
             var question = this.questions.get(id);
-            var answers = question.get('answers');
-            console.log('Question = [' + question.get('text') + ']');
+            var answers = new Discussion.AnswerCollection([]);
+            answers.fetch({ async: false, data: $.param({question: question.id}) });
 
             // Set layout and views, then render.
-            app.useLayout('onecolumn').setViews({
-                '#container-nav': new Meta.Views.Nav(),
-                '#container-content': new Discussion.Views.Show({
-                    //session: this.session
-                    model: this.user,
-                    question: question.get('text'),
-                    collection: this.answers
+            app.useLayout('discussion').setViews({
+                '#container-nav': new Meta.Views.Nav({
+                    model: this.session,
+                    notifications: this.notifications
+                }),
+                '#container-question': new Discussion.Views.ShowQuestion({
+                    session: this.session,
+                    question: question,
+                    collection: answers
+                }),
+                '#container-stats': new Discussion.Views.Stats({
+                    collection: answers
+                }),
+                '#container-answers': new Discussion.Views.ListAnswers({
+                    session: this.session,
+                    notifications: this.notifications,
+                    //model: this.user,
+                    collection: answers
                 })
             }).render();
+
+            // Poll the server for updates to this question's answers.
+            setInterval(function () {
+                debug.info("Fetching answers from the server...");
+                answers.fetch({ async: false, reset: true, data: $.param({question: question.id}) });
+            }, 10000);
         },
 
         list: function() {
@@ -89,8 +97,11 @@ function(app, Backbone, debug, Meta, Constants) {
 
             // Set layout and views, then render.
             app.useLayout('onecolumn').setViews({
-                '#container-nav': new Meta.Views.Nav(),
-                '#container-content': new Discussion.Views.List({
+                '#container-nav': new Meta.Views.Nav({
+                    model: this.session,
+                    notifications: this.notifications
+                }),
+                '#container-content': new Discussion.Views.ListQuestions({
                     model: this.user,
                     questions: this.questions
                     //session: this.session
@@ -109,15 +120,19 @@ function(app, Backbone, debug, Meta, Constants) {
         // Default attributes for a question.
         defaults: {
             text: '',
-            username: null
+            userId: null
         },
 
         parse: function(response) {
             debug.info('Entering Discussion.QuestionModel.parse()...');
-            console.log(response);
+
+            console.log('question id=[' + response.id + '] text=[' + response.text + '] username=[' + response.user.username + ']');
+
             return {
                 id: response.id,
-                text: response.question
+                text: response.text,
+                username: response.user.username
+                //userId: response.user.match(/\/api\/user\/(.*)\//)[1]
             };
         },
 
@@ -139,15 +154,11 @@ function(app, Backbone, debug, Meta, Constants) {
 
         parse: function(response) {
             debug.info('Entering Discussion.QuestionCollection.parse()...');
-            console.log('Discussion.QuestionCollection parse() got ' + response.meta.total_count + ' objects...');
-            console.log(response.objects);
             return response.objects;
         },
 
         initialize: function() {
             debug.info('Entering Discussion.QuestionCollection.initialize()...');
-            // Save all of the question items under namespace.
-            //this.localStorage = new Store(options.namespace);
         }
 
     });
@@ -157,13 +168,26 @@ function(app, Backbone, debug, Meta, Constants) {
 
     Discussion.AnswerModel = Backbone.Model.extend({
 
-        url: 'http://' + app.serverHost + '/api/answer/',
-
         // Default attributes for an answer.
         defaults: {
             text: '',
             username: null
+        },
+
+        parse: function(response) {
+            debug.info('Entering Discussion.AnswerModel.parse()...');
+
+            debug.info('Answer text=[' + response.answer + '] timestamp=[' + response.timestamp + ']'); // TODO
+
+            return {
+                id: response.id,
+                text: response.text,
+                timestamp: response.timestamp,
+                username: response.user.username,
+                userId: response.user.id
+            };
         }
+
     });
 
 
@@ -172,12 +196,18 @@ function(app, Backbone, debug, Meta, Constants) {
 
     Discussion.AnswerCollection = Backbone.Collection.extend({
 
+        url: 'http://' + app.serverHost + '/api/answer/',
+
         // Reference to this collection's model.
         model: Discussion.AnswerModel,
 
-        initialize: function(options) {
-            // Save all of the answer items under namespace.
-            //this.localStorage = new Store(options.namespace);
+        parse: function(response) {
+            debug.info('Entering Discussion.AnswerCollection.parse()...');
+
+            return response.objects;
+        },
+
+        initialize: function() {
         },
 
         // We keep the Answers in sequential order, despite being saved by unordered
@@ -189,18 +219,13 @@ function(app, Backbone, debug, Meta, Constants) {
             return this.last().get('order') + 1;
         }
 
-        // Answers are sorted by their original insertion order.
-        /*comparator: function( answer ) {
-            return answer.get('order');
-        }*/
-
     });
 
 
     // Discussion Views
     // ----------------
 
-    Discussion.Views.Show = Backbone.View.extend({
+    Discussion.Views.ShowQuestion = Backbone.View.extend({
         template: 'discussion/show',
 
         // Delegated events for creating new items.
@@ -210,8 +235,9 @@ function(app, Backbone, debug, Meta, Constants) {
 
         initialize: function(options) {
             debug.info('Entering Discussion.Views.Show.initialize()...');
+
+            this.session = options.session;
             this.question = options.question;
-            this.answers = options.answers;
         },
 
         // Callback function that creates new Answer model.
@@ -238,28 +264,147 @@ function(app, Backbone, debug, Meta, Constants) {
             debug.info('Entering Discussion.Views.Form.newAttributes()...');
 
             return {
-                title: this.$('#new-answer').val(),
-                order: this.collection.nextOrder(),
-                completed: false
+                text: this.$('#new-answer').val(),
+                question: {'pk': this.question.id},
+                user: {'pk': this.session.id}
             };
         },
 
         serialize: function() {
             debug.info('Entering Discussion.Views.Show.serialize()...');
 
-            console.log("question=[" + this.question + ']');    // TODO
-            console.log("answers length=[" + this.collection.length + ']');    // TODO
-            console.log(this.collection.toJSON());   // TODO
-
             return {
-                question: this.question,
-                answers: this.collection.toJSON(),
-                numAnswers: this.collection.length
+                question: this.question.get('text')
+                /*answers: this.collection.toJSON(),
+                numAnswers: this.collection.length*/    // TODO: Put this somewhere
             };
         }
     });
 
-    Discussion.Views.List = Backbone.View.extend({
+    Discussion.Views.Stats = Backbone.View.extend({
+        template: 'discussion/answer_stats',
+
+        // Provides the template with the model data to render.
+        serialize: function() {
+            debug.info('Entering Discussion.Views.Stats.serialize()...');
+
+            return {
+                numAnswers: this.collection.length
+            };
+        },
+    });
+
+    // The view that comprises the DOM elements for an answer list.
+    Discussion.Views.ListAnswers = Backbone.View.extend({
+
+        tagName: 'ul id="answer-list" class="unstyled answer-list"',
+
+        // This view listens for changes to its collection,
+        // re-rendering.
+        initialize: function(options) {
+            debug.info('Entering Views.ListAnswers.initialize()...');
+
+            this.session = options.session;
+
+            // Collection.fetch() will call reset() on success, which
+            // in turn will trigger a "reset" event
+            this.collection.on('reset', function() {
+                this.render();
+            }, this);
+
+            // When model is added to this collection, insert item
+            // view.
+            this.collection.on('add', function(item) {
+                this.insertView(new Discussion.Views.ShowAnswer({
+                    model: item,
+                    notifications: this.notifications,
+                    session: this.session
+                })).render();
+            }, this);
+        },
+
+        beforeRender: function() {
+            console.log('Entering Views.ListAnswers.beforeRender()...');
+
+            // Insert each item view before render.
+            this.collection.each(function(item) {
+                this.insertView(new Discussion.Views.ShowAnswer({
+                    model: item,
+                    notifications: this.notifications,
+                    session: this.session
+                }));
+            }, this);
+        }
+
+    });
+
+    // The view that comprises the DOM element for an answer.
+    Discussion.Views.ShowAnswer = Backbone.View.extend({
+        template: 'discussion/answer_show',
+
+        tagName: 'li',
+
+        // Delegated events for creating new items.
+        events: {
+            'click .upvote': 'createVoteOnClick'
+        },
+
+        initialize: function(options) {
+            debug.info('Entering Discussion.Views.ShowAnswer.initialize()...');
+
+            this.session = options.session;
+            this.notifications = options.notifications;
+
+            this.votes = new Vote.VoteCollection([]);
+            this.votes.fetch({ async: false, data: $.param({answer: this.model.id}) });
+        },
+
+        createVoteOnClick: function(e) {
+            debug.info('Entering Discussion.Views.ShowAnswer.createVoteOnClick()...');
+
+            // Cancel default action of the keypress event.
+            e.preventDefault();
+
+            // Create vote
+            this.votes.create(this.newAttributes());
+
+            app.feature(3, this.session.id).whenOn( function() {
+                this.notifications.create({
+                    message: 'Someone agreed with your answer!',
+                    user_from: this.session.id,
+                    user_to: this.model.get('userId'),
+                });
+            });
+
+            // TODO: Create notification
+            //console.log('Upvoting answer text=[' + this.model.get('text') + '] by username=[' + this.model.get('username') + '] voterId=[' + this.session.id+ '] answerId=[' + this.model.id + ']');
+        },
+
+        // Generate the attributes for a new Answer model.
+        newAttributes: function() {
+            debug.info('Entering Discussion.Views.ShowAnswer.newAttributes()...');
+
+            return {
+                user: {'pk': this.session.id},
+                answer: {'pk': this.model.id}
+            };
+        },
+
+        // Provides the template with the model data to render.
+        serialize: function() {
+            debug.info('Entering Discussion.Views.Item.serialize()...');
+
+            return {
+                upvoteAnswer: app.feature(2, this.session.id),
+                username: this.model.get('username'),
+                timestamp: this.model.get('timestamp'),
+                text: this.model.get('text'),
+                numVotes: this.votes.length
+            };
+        },
+    });
+
+    Discussion.Views.ListQuestions = Backbone.View.extend({
         template: 'discussion/list',
 
         tagName: 'div id="discussion-list-outer"',
@@ -275,12 +420,6 @@ function(app, Backbone, debug, Meta, Constants) {
 
         serialize: function() {
             debug.info('Entering Discussion.Views.List.serialize()...');
-
-            // TODO: For FB login
-            // var hash = window.location.hash;window.close();opener.OAuthRedirect(hash);
-
-            console.log("QUESTIONS length=[" + this.questions.length + ']');    // TODO
-            console.log(this.questions.toJSON());   // TODO
 
             return {
                 questions: this.questions.toJSON()
